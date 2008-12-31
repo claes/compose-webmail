@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Copyright Claes Holmerson
+# This program can be distributed under the terms of the GNU GPL v2.
+
+usage() 
+{
+    echo "Compose email for mailto-url in default browser"
+    echo "Usage: $0 {yahoo|hotmail|gmail} mailto-url"
+    echo
+    echo "Example: $0 yahoo mailto:joe@example.com?cc=bob@example.com&body=hello"
+    echo "Note: mailto-url should be url-encoded"
+}
+
+if [ ! $# == 2 ]; then
+  usage
+  exit 1
+fi
+
+PROVIDER_URL=
+MAILTO_URL=$2
+
+#Parse mailto URL
+export TO=$(echo "$MAILTO_URL" | grep -oE "mailto:[A-Za-z0-9@\_\.\-]+" | cut -d ':' -f 2 )
+export CC=$(echo "$MAILTO_URL" | grep -oE "(^|[?&])cc=[^&]+" | cut -f 2 -d "=" )   
+export BCC=$(echo "$MAILTO_URL" | grep -oE "(^|[?&])bcc=[^&]+" | cut -f 2 -d "=" )   
+export SUBJECT=$(echo "$MAILTO_URL" | grep -oE "(^|[?&])subject=[^&]+" | cut -f 2 -d "=" )
+export BODY=$(echo "$MAILTO_URL" | grep -oE "(^|[?&])body=[^&]+" | cut -f 2 -d "=" )
+
+case "$1" in 
+    yahoo)
+	PROVIDER_URL="http://compose.mail.yahoo.com/?To=$TO&Subject=$SUBJECT&Body=$BODY&Cc=$CC&Bcc=$BCC"
+	;;
+    hotmail)
+	PROVIDER_URL="http://hotmail.msn.com/cgi-bin/compose?To=$TO&Subject=$SUBJECT&Body=$BODY&Cc=$CC&Bcc=$BCC&mailto=1"
+	;;
+    gmail)
+	PROVIDER_URL="http://mail.google.com/mail/?view=cm&fs=1&to=$TO&su=$SUBJECT&body=$BODY&cc=$CC&bcc=$BCC&tf=1"
+    ;;
+    *)
+	usage
+	exit 1
+esac
+xdg-open $PROVIDER_URL
+
+
+
