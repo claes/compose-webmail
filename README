@@ -1,4 +1,4 @@
 This script takes two arguments: name of a webmail provider (currently
-Hotmail. Yahoo and GMail), and a mailto url. It opens the default browser
+Hotmail, Yahoo or GMail), and a mailto url. It opens the default browser
 using a URL that is specific for the provider, to prepare email composal
 for the given mailto url.

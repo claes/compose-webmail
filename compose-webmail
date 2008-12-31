@@ -5,11 +5,22 @@
 
 usage() 
 {
-    echo "Compose email for mailto-url in default browser"
-    echo "Usage: $0 {yahoo|hotmail|gmail} mailto-url"
+    echo "Compose email for mailto-url in the default browser"
+    echo "Usage: $0 {yahoo|gmail|'compose-url format'} mailto-url"
+    echo 
+    echo "'compose-url format' defines how a specific url should be formatted for"
+    echo "a specific webmail provider"
+    echo "The query string arguments must defined using '%s' (printf-style), in order "
+    echo "for TO, SUBJECT, CC, BCC and BODY."
+    echo "Note that since single percent signs are parsed by printf this way, "
+    echo "proper percent signs that belong to the URL must be escaped using %%"
     echo
-    echo "Example: $0 yahoo mailto:joe@example.com?cc=bob@example.com&body=hello"
-    echo "Note: mailto-url should be url-encoded"
+    echo "Examples: "
+    echo "$0 yahoo 'mailto:joe@example.com?cc=bob@example.com&body=hello&subject=hi'"
+    echo "or"
+    echo "$0 'http://compose.mail.yahoo.com/?To=%s&Subject=%s&Cc=%s&Bcc=%s&Body=%s' 'mailto:joe@example.com?cc=bob@example.com&body=hello&subject=hi'"
+    echo
+    echo "Note also: mailto-url should be url-encoded"
 }
 
 if [ ! $# == 2 ]; then
@@ -29,19 +40,16 @@ export BODY=$(echo "$MAILTO_URL" | grep -oE "(^|[?&])body=[^&]+" | cut -f 2 -d "
 
 case "$1" in 
     yahoo)
-	PROVIDER_URL="http://compose.mail.yahoo.com/?To=$TO&Subject=$SUBJECT&Body=$BODY&Cc=$CC&Bcc=$BCC"
-	;;
-    hotmail)
-	PROVIDER_URL="http://hotmail.msn.com/cgi-bin/compose?To=$TO&Subject=$SUBJECT&Body=$BODY&Cc=$CC&Bcc=$BCC&mailto=1"
+	PROVIDER_URL="http://compose.mail.yahoo.com/?To=$TO&Subject=$SUBJECT&Cc=$CC&Bcc=$BCC&Body=$BODY"
 	;;
     gmail)
-	PROVIDER_URL="http://mail.google.com/mail/?view=cm&fs=1&to=$TO&su=$SUBJECT&body=$BODY&cc=$CC&bcc=$BCC&tf=1"
-    ;;
+	PROVIDER_URL="http://mail.google.com/mail/?view=cm&fs=1&to=$TO&su=$SUBJECT&cc=$CC&bcc=$BCC&body=$BODY&tf=1"
+	;;
     *)
-	usage
-	exit 1
+	PROVIDER_URL=$(printf "$1" ${TO:=''} ${SUBJECT:=''} ${CC:=''} ${BCC:=''} ${BODY:=''})
 esac
-xdg-open $PROVIDER_URL
+#echo $PROVIDER_URL
+xdg-open "$PROVIDER_URL"
 
 
 
